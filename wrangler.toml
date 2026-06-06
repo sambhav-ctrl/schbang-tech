@@ -1,0 +1,7 @@
+name = "REPLACE_WITH_PROJECT_NAME"
+pages_build_output_dir = "public"
+compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "PUSH_SUBS"
+id = "dcb61fd02fdb44f1aaea492242c321c6"
