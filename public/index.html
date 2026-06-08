@@ -11,18 +11,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
 <style>
 html{font-size:16px;-webkit-text-size-adjust:100%;scrollbar-width:none}html::-webkit-scrollbar{display:none}
 :root{--bg:#0a0a0a;--sur:#141414;--card:#1c1c1c;--bor:#2a2a2a;--acc:#c8f135;--tx:#f5f5f5;--mu:#777;--so:#aaa;--nav:56px}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-height:100vh;padding-bottom:var(--nav);background-image:radial-gradient(ellipse at 20% 20%,rgba(200,241,53,0.06) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(124,77,255,0.06) 0%,transparent 60%)}
+body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-height:100vh;padding-bottom:var(--nav)}
 .bnav{position:fixed;bottom:0;left:0;right:0;height:var(--nav);background:rgba(10,10,10,0.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.07);display:flex;z-index:100;box-shadow:0 -4px 24px rgba(0,0,0,0.4)}
 .bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--mu);transition:color .15s;border:none;background:none;font-family:"DM Sans",sans-serif}
 .bnav-btn.active{color:var(--acc)}
 .bnav-icon{font-size:1.2rem}
 .bnav-label{font-size:.62rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
-.screen{display:none;flex-direction:column;min-height:calc(100vh - var(--nav))}
+.screen{display:none;flex-direction:column;min-height:calc(100vh - var(--nav));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .screen.active{display:flex}
 .search-hero{padding:56px 24px 24px;position:relative}
 .bell-btn{position:absolute;top:52px;right:22px;width:42px;height:42px;border-radius:50%;border:1px solid var(--bor);background:var(--card);font-size:1.1rem;cursor:pointer;transition:.2s;z-index:5}
@@ -45,12 +45,12 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
 .search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:1.1rem;pointer-events:none}
 .search-clear{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:var(--bor);border:none;border-radius:50%;width:24px;height:24px;display:none;align-items:center;justify-content:center;cursor:pointer;color:var(--so);font-size:.8rem}
 .search-clear.show{display:flex}
-.search-results{flex:1;padding:16px 20px 20px;overflow-y:auto}
+.search-results{flex:1;padding:16px 20px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .search-empty{text-align:center;padding:48px 24px;color:var(--mu)}
 .search-empty .se-icon{font-size:2.4rem;margin-bottom:12px}
 .search-empty p{font-size:.92rem;line-height:1.7}
 .search-hint{font-size:.7rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mu);padding:0 4px 12px}
-.brand-result{background:rgba(255,255,255,0.05);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.09);border-radius:18px;margin-bottom:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.25)}
+.brand-result{background:rgba(40,40,40,0.95);border:1px solid rgba(255,255,255,0.09);border-radius:18px;margin-bottom:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.25)}
 .br-header{padding:18px 18px 14px;cursor:pointer}
 .br-name{font-size:1.1rem;font-weight:700}
 .br-owner{font-size:.8rem;color:var(--mu);margin-top:3px}
@@ -74,7 +74,7 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
 .view-tabs{display:flex;gap:6px}
 .vtab{padding:8px 14px;border-radius:10px;border:1.5px solid var(--bor);background:var(--sur);color:var(--mu);font-size:.85rem;font-weight:700;cursor:pointer;transition:all .15s}
 .vtab.active{background:var(--acc);border-color:var(--acc);color:#0a0a0a}
-.mchips{padding:8px 0 18px;overflow-x:auto;display:flex;flex-direction:column;scrollbar-width:none;-webkit-overflow-scrolling:touch;flex-shrink:0}
+.mchips{padding:8px 0 18px;overflow-x:auto;display:flex;flex-direction:column;scrollbar-width:none;-webkit-overflow-scrolling:touch;flex-shrink:0;touch-action:pan-x}
 .mchips::-webkit-scrollbar{display:none}
 .timeline-wrap{padding:0 20px;min-width:max-content;display:flex;align-items:center;gap:0;position:relative}
 .tl-item{display:flex;flex-direction:column;align-items:center;position:relative;cursor:pointer;min-width:72px}
@@ -108,13 +108,13 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
 .spill-num{font-size:.92rem;font-weight:700}
 .spill-lbl{font-size:.65rem;color:var(--mu);font-weight:500}
 .slabel{font-size:.66rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--mu);padding:4px 20px 10px;flex-shrink:0}
-.bchips{padding:0 16px 14px;display:flex;flex-direction:column;gap:8px;will-change:transform}
+.bchips{padding:0 16px 14px;display:flex;flex-direction:column;gap:8px;contain:layout style}
 .bchip{padding:13px 16px;border-radius:14px;border:1.5px solid transparent;cursor:pointer;user-select:none;transition:all .15s;display:flex;align-items:center;justify-content:space-between;width:100%}
 .bchip.selected{box-shadow:0 0 0 2px rgba(255,255,255,.12)}
 .bchip-name{font-size:.93rem;font-weight:600;color:var(--tx)}
 .bchip-name.billed{text-decoration:line-through;opacity:0.45}
 .est-badge{padding:3px 9px;border-radius:999px;font-size:.68rem;font-weight:700;flex-shrink:0;white-space:nowrap}
-.detail-inline{background:rgba(255,255,255,0.05);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:14px;border:1px solid rgba(255,255,255,0.09);margin-top:6px;overflow:hidden;animation:fadeIn .2s ease}
+.detail-inline{background:rgba(40,40,40,0.98);border-radius:14px;border:1px solid rgba(255,255,255,0.09);margin-top:6px;overflow:hidden;animation:fadeIn .2s ease}
 .detail-inner{padding:16px}
 .d-brand{font-size:1.05rem;font-weight:700;margin-bottom:12px}
 .d-row{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--bor);gap:12px}
@@ -211,6 +211,8 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
   box-shadow:0 24px 64px rgba(0,0,0,0.5);
 }
 
+.screen{transition:opacity .18s ease;}
+.screen.active{opacity:1;}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
 </style>
@@ -304,9 +306,9 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
 </div>
 
 <nav class="bnav">
-  <button class="bnav-btn active" id="bnav-search" onclick="gsap.fromTo(this,{scale:.8},{scale:1,duration:.3,ease:'back.out(2)'});switchScreen('search')"><span class="bnav-icon">🔍</span><span class="bnav-label">Search</span></button>
-  <button class="bnav-btn" id="bnav-browse" onclick="gsap.fromTo(this,{scale:.8},{scale:1,duration:.3,ease:'back.out(2)'});switchScreen('browse')"><span class="bnav-icon">📅</span><span class="bnav-label">Browse</span></button>
-  <button class="bnav-btn" id="bnav-charts" onclick="gsap.fromTo(this,{scale:.8},{scale:1,duration:.3,ease:'back.out(2)'});switchScreen('charts')"><span class="bnav-icon">📊</span><span class="bnav-label">Charts</span></button>
+  <button class="bnav-btn active" id="bnav-search" onclick="switchScreen('search')"><span class="bnav-icon">🔍</span><span class="bnav-label">Search</span></button>
+  <button class="bnav-btn" id="bnav-browse" onclick="switchScreen('browse')"><span class="bnav-icon">📅</span><span class="bnav-label">Browse</span></button>
+  <button class="bnav-btn" id="bnav-charts" onclick="switchScreen('charts')"><span class="bnav-icon">📊</span><span class="bnav-label">Charts</span></button>
 </nav>
 
 <div class="assign-modal" id="assignModal">
@@ -322,15 +324,14 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
 
 <script>
 const DEPT='tech';
-const HIERARCHY={tech:{'Akshay':{'Bhargava':['fevicreate','lnt realty'],'Jayesh':['loreal','shriram life'],'Tanisha':['cadila','glow','bridgestone','reddy','better bath','dhp','usv'],'Tarini':['britannia']},'Carolyn':{'Aqib':['hccb','jindal stainless'],'Ritesh':['birla opus','bodycraft'],'Khushi':['amazon','ring','vantara']},'Melissa':{'Priyam':['brookfield','figaro','himatsingka','himmatsingka','nanhi kali']}},martech:{'Akshay':{'Bhargava':['fevicreate','audi'],'Tanisha':['dominos','bridgestone'],'Tarini':['britannia','jiostar']},'Carolyn':{'Khushi':['mccain'],'Ritesh':['bodycraft','aditya birla']},'Melissa':{'Priyam':['milton','treo','procook','brookfield'],'Vibhuti':['jockey','mahindra rise','kotak','nivea','castrol'],'Minal':['mom store','hdfc life','motorola']}}};
+const HIERARCHY={tech:{'Akshay':{'Bhargava':['fevicreate','lnt realty'],'Jayesh':['loreal','shriram life'],'Tanisha':['cadilla','glow','bridgestone','reddy','better bath','dhp','usv'],'Tarini':['britannia']},'Carolyn':{'Aqib':['hccb','jindal stainless'],'Ritesh':['birla opus','bodycraft'],'Khushi':['amazon','ring','vantara']},'Melissa':{'Priyam':['brookfield','figaro','himatsingka','himmatsingka','nanhi kali']}},martech:{'Akshay':{'Bhargava':['fevicreate','audi'],'Tanisha':['dominos','bridgestone'],'Tarini':['britannia','jiostar']},'Carolyn':{'Khushi':['mccain'],'Ritesh':['bodycraft','aditya birla']},'Melissa':{'Priyam':['milton','treo','procook','brookfield'],'Vibhuti':['jockey','mahindra rise','kotak','nivea','castrol'],'Minal':['mom store','hdfc life','motorola']}}};
 const SCFG={'yes':{label:'Est. Raised',color:'#4caf50'},'no':{label:'Not Raised',color:'#ff6b35'},'on pause':{label:'On Pause',color:'#7c4dff'},'exit':{label:'Exit',color:'#f44336'},'not started yet':{label:'Not Started',color:'#9e9e9e'}};
 let MONTHS=[],ROWS=[],HIER={},VAS_BRANDS=[],currentMonth='',currentSub='brands',selBrand=-1,currentGAM=null,currentAM=null;
 let mChart=null,eiChart=null,rtChart=null,lfChart=null,searchTimer=null;
 let SUMMARY=null;
 
 window.onload=async()=>{
-  // Register GSAP plugins
-  if(window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
+  // ScrollTrigger disabled for perf - use deferred animations instead
 
   // Hero text - SplitText letter animation
   gsap.from('.search-dept',{opacity:0,y:-20,duration:.5,ease:'power2.out'});
@@ -449,19 +450,13 @@ function dismissBanner(){
 
 function switchScreen(n){
   const prev=document.querySelector('.screen.active');
-  if(prev)gsap.to(prev,{opacity:0,x:-30,duration:.2,ease:'power2.in',onComplete:()=>{
+  const next=document.getElementById('screen-'+n);
+  if(prev&&prev!==next){
     prev.classList.remove('active');
     prev.style.opacity='';prev.style.transform='';
-    const next=document.getElementById('screen-'+n);
-    next.classList.add('active');
-    gsap.from(next,{opacity:0,x:30,duration:.3,ease:'power2.out',clearProps:'all'});
-    if(n==='charts')renderCharts();
-  }});
-  else{
-    document.getElementById('screen-'+n).classList.add('active');
-    gsap.from('#screen-'+n,{opacity:0,x:30,duration:.3,ease:'power2.out',clearProps:'all'});
-    if(n==='charts')renderCharts();
   }
+  next.classList.add('active');
+  if(n==='charts')renderCharts();
   document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('bnav-'+n).classList.add('active');
 }
@@ -534,14 +529,7 @@ async function loadMonth(month){
     document.getElementById('vas-sub').textContent=[(d.vasCurrentTotal?'₹'+fmt(d.vasCurrentTotal)+' curr':''),(d.vasLastTotal?'₹'+fmt(d.vasLastTotal)+' last FY':'')].filter(Boolean).join(' + ')||'No VAS data';
     renderSummary();renderBrands();
     gsap.from('.sum-card',{opacity:0,scale:.92,y:20,stagger:.1,duration:.5,ease:'back.out(1.4)',clearProps:'all'});
-    if(window.ScrollTrigger){
-      ScrollTrigger.batch('.est-summary .spill',{
-        onEnter:els=>gsap.from(els,{opacity:0,scale:.7,stagger:.08,duration:.4,ease:'back.out(2)',clearProps:'all'}),
-        start:'top 95%',once:true
-      });
-    } else {
-      gsap.from('.est-summary .spill',{opacity:0,scale:.8,stagger:.08,duration:.4,ease:'back.out(1.7)',delay:.2,clearProps:'all'});
-    }
+    gsap.from('.est-summary .spill',{opacity:0,scale:.85,stagger:.06,duration:.3,ease:'back.out(1.5)',clearProps:'all'});
   }catch(e){alert('Error: '+e.message);}
   load(false);
 }
@@ -562,15 +550,7 @@ function renderBrands(){
     const el=document.getElementById('bchip-'+i);
     if(el) addLongPress(el,i,false,null);
   });
-  // ScrollTrigger for each brand chip
-  if(window.ScrollTrigger){
-    ScrollTrigger.batch('#bchips .bchip',{
-      onEnter:els=>gsap.from(els,{opacity:0,x:-40,stagger:.06,duration:.45,ease:'power3.out',clearProps:'all'}),
-      start:'top 95%', once:true
-    });
-  } else {
-    gsap.from('#bchips .bchip',{opacity:0,x:-30,stagger:.05,duration:.4,ease:'power3.out',clearProps:'all'});
-  }
+  gsap.from('#bchips .bchip',{opacity:0,x:-20,stagger:.04,duration:.3,ease:'power2.out',clearProps:'all'});
 }
 
 function selB(idx,el){
@@ -676,32 +656,8 @@ function selAMf(am){
     ${retHTML}${vasHTML}`;
   const pbw=document.getElementById('people-brands-wrap');pbw.style.display='block';pbw.style.opacity='1';
   gsap.from('.am-summary-card',{opacity:0,y:-20,scale:.95,duration:.5,ease:'back.out(1.5)',clearProps:'all'});
-  // ScrollTrigger count-up on AM summary values
-  if(window.ScrollTrigger){
-    document.querySelectorAll('.am-sum-val').forEach(el=>{
-      const txt=el.textContent;
-      const num=parseFloat(txt.replace(/[^0-9.]/g,''));
-      if(!num||isNaN(num))return;
-      ScrollTrigger.create({trigger:el,start:'top 95%',once:true,
-        onEnter:()=>{
-          const obj={v:0};
-          gsap.to(obj,{v:num,duration:1,ease:'power2.out',
-            onUpdate:()=>{el.innerHTML='&#8377;'+fmt(Math.round(obj.v));}
-          });
-        }
-      });
-    });
-  }
-  if(window.ScrollTrigger){
-    setTimeout(()=>{
-      ScrollTrigger.batch('#people-bchips .bchip',{
-        onEnter:els=>gsap.from(els,{opacity:0,x:-40,stagger:.06,duration:.4,ease:'power3.out',clearProps:'all'}),
-        start:'top 95%',once:true
-      });
-    },100);
-  } else {
-    gsap.from('#people-bchips .bchip',{opacity:0,x:-30,stagger:.06,duration:.4,ease:'power3.out',delay:.2,clearProps:'all'});
-  }
+
+  gsap.from('#people-bchips .bchip',{opacity:0,x:-20,stagger:.04,duration:.3,ease:'power2.out',delay:.1,clearProps:'all'});
 }
 
 function setupSearch(){
@@ -743,14 +699,7 @@ function renderResults(results){
     return `<div class="brand-result" id="sr-${bi}"><div class="br-header" onclick="togR(${bi})"><div class="br-name">${b.brand}${assignBtn}</div><div class="br-owner">GAM: ${b.gam} · AM: ${b.am}</div></div><div class="br-body" id="br-${bi}">${mHTML}${vHTML?`<div class="br-vas-section"><div class="br-vas-title">Current FY Unbilled VAS</div>${vHTML}</div>`:''}${lastFYHTML}</div></div>`;
   }).join('');
   document.getElementById('search-results').innerHTML=`<div class="search-hint">${results.length} brand${results.length>1?'s':''} found</div>${html}`;
-  if(window.ScrollTrigger){
-    ScrollTrigger.batch('#search-results .brand-result',{
-      onEnter:els=>gsap.from(els,{opacity:0,y:40,scale:.95,stagger:.09,duration:.5,ease:'back.out(1.3)',clearProps:'all'}),
-      start:'top 95%',once:true
-    });
-  } else {
-    gsap.from('#search-results .brand-result',{opacity:0,y:40,scale:.95,stagger:.09,duration:.5,ease:'back.out(1.3)',clearProps:'all'});
-  }
+  gsap.from('#search-results .brand-result',{opacity:0,y:20,stagger:.05,duration:.3,ease:'power2.out',clearProps:'all'});
   // Wire long press on search results
   results.forEach((b,bi)=>{
     const el=document.getElementById('sr-'+bi);
