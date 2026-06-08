@@ -41,7 +41,7 @@ const HIERARCHY = {
 };
 
 const APR_EXCEPTIONS = {
-  tech:    ["britannia","jindal stainless"],
+  tech:    ["britannia","jindal staineless"],
   martech: ["britannia"]
 };
 
