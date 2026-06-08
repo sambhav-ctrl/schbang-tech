@@ -14,7 +14,7 @@ const HIERARCHY = {
       'Tarini':   ['britannia']
     },
     'Carolyn': {
-      'Aqib':   ['hccb','jindal stainless'],
+      'Aqib':   ['hccb','jindal staineless'],
       'Ritesh': ['birla opus','bodycraft'],
       'Khushi': ['amazon','ring','vantara']
     },
