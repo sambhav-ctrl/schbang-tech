@@ -96,7 +96,7 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
 .sc-label{font-size:.62rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
 .sum-card.main .sc-label{color:rgba(0,0,0,.45)}
 .sum-card.vas  .sc-label{color:var(--mu)}
-.sc-amount{font-family:"Bebas Neue",sans-serif;font-size:2rem;line-height:1;position:relative;z-index:1;word-break:break-all}
+.sc-amount{font-family:"Bebas Neue",sans-serif;font-size:clamp(1.1rem,5.5vw,2rem);line-height:1;position:relative;z-index:1;word-break:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sum-card.main .sc-amount{color:#0a0a0a}
 .sum-card.vas  .sc-amount{color:var(--acc)}
 .sc-sub{font-size:.68rem;margin-top:4px;position:relative;z-index:1;line-height:1.4}
@@ -169,7 +169,7 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
 @keyframes ripple1{0%{transform:translate(0,0) scaleY(1)}25%{transform:translate(-2%,1px) scaleY(1.08)}50%{transform:translate(-4%,-1px) scaleY(.94)}75%{transform:translate(-2%,1px) scaleY(1.08)}100%{transform:translate(0,0) scaleY(1)}}
 @keyframes ripple2{0%{transform:translate(0,1px) scaleY(.96)}33%{transform:translate(3%,-1px) scaleY(1.1)}66%{transform:translate(1%,1px) scaleY(.92)}100%{transform:translate(0,1px) scaleY(.96)}}
 .sum-card.main .sc-label,.sum-card.main .sc-amount,.sum-card.main .sc-sub{position:relative;z-index:2;}
-.blob-pct{position:absolute;top:10px;right:12px;font-size:.65rem;font-weight:700;color:rgba(0,0,0,.55);z-index:3;letter-spacing:1px;background:rgba(0,0,0,.08);padding:2px 7px;border-radius:999px;}
+.blob-pct{display:inline-block;margin-top:6px;font-size:.65rem;font-weight:700;color:rgba(0,0,0,.55);z-index:3;letter-spacing:1px;background:rgba(0,0,0,.12);padding:2px 7px;border-radius:999px;position:relative;}
 
 
 /* Radial rings on AM chips */
@@ -260,10 +260,10 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
           </svg>
         </div>
       </div>
-      <div class="blob-pct" id="blob-pct"></div>
       <div class="sc-label">Retainer</div>
       <div class="sc-amount" id="ret-amount">—</div>
       <div class="sc-sub" id="ret-sub">Loading…</div>
+      <div class="blob-pct" id="blob-pct"></div>
     </div>
     <div class="sum-card vas">
       <div class="sc-label">Unbilled VAS</div>
