@@ -171,7 +171,7 @@ async function getEstimateMap(sheetId, tabName, dept, apiKey, isApril) {
     if (norm(row[0]) !== dept) continue;
     const brand = String(row[1]||"").trim();
     if (!brand) continue;
-    map[norm(brand)] = { status: norm(row[3]) || "no", date: row[4]||"", value: parseAmt(row[5]) };
+    map[norm(brand)] = { status: norm(row[3]) || "no", date: row[4]||"", value: parseAmt(row[5]), retainerBase: parseAmt(row[2]) };
   }
   return map;
 }
@@ -344,58 +344,51 @@ async function getSummaryData(vasSheetId, apiKey) {
   return { monthlyUnbilled, estInvRatio, totals, _debug: { tab: summaryTab, rowCount: rows.length } };
 }
 
-// Statuses shown from estimate sheet even if brand has no retainer this month
-const SHOW_WITHOUT_RETAINER = ["exit", "on pause", "not started yet"];
+// Inactive statuses — brand has no active retainer, don't count as billed
+const INACTIVE_STATUSES = ["exit", "on pause", "not started yet"];
 
 function mergeRows(unbilledMap, estMap, dept, isApril) {
   const rows = [];
+  const allKeys = {};
+  Object.keys(estMap).forEach(k => allKeys[k] = true);
+  Object.keys(unbilledMap).forEach(k => allKeys[k] = true);
 
-  // 1. All brands present in the unbilled sheet this month
-  Object.keys(unbilledMap).forEach(key => {
-    const u = unbilledMap[key];
-    const e = estMap[key];
+  Object.keys(allKeys).forEach(key => {
+    const u = unbilledMap[key];  // in unbilled sheet this month?
+    const e = estMap[key];       // in estimate sheet (master)?
     const status = isApril ? (e ? e.status : "yes") : (e ? e.status : "no");
-    const owner = findOwner(u.brand, dept);
-    const isBilled = u.comment === "Billed";
-    rows.push({
-      brand:   u.brand,
-      amount:  u.amount,
-      comment: isBilled ? "Billed" : (u.comment || ""),
-      status,
-      date:    e?.date || "",
-      value:   e?.value || 0,
-      gam:     owner.gam,
-      am:      owner.am
-    });
-  });
+    const owner = findOwner(u ? u.brand : key, dept);
+    const brandName = u ? u.brand : key.replace(/\w/g, c => c.toUpperCase());
 
-  // 2. Brands in estimate sheet but NOT in unbilled sheet this month
-  //    Only show if status is exit / on pause / not started yet
-  //    (these have no retainer but should still appear in the list)
-  Object.keys(estMap).forEach(key => {
-    if (unbilledMap[key]) return; // already handled above
-    const e = estMap[key];
-    const status = isApril ? e.status : e.status;
-    if (!SHOW_WITHOUT_RETAINER.includes(status)) return; // no retainer, not a special status → skip
-    const owner = findOwner(key, dept);
-    const brandName = key.replace(/\w/g, c => c.toUpperCase());
+    // Billed logic:
+    // - Present in unbilled sheet with col C = "Billed" → billed (manually marked)
+    // - Absent from unbilled sheet + active status → already invoiced = billed
+    // - Absent from unbilled sheet + inactive status → not active, show with status
+    const manuallyBilled = u && u.comment === "Billed";
+    const autosBilled    = !u && e && !INACTIVE_STATUSES.includes(status);
+    const isBilled       = manuallyBilled || autosBilled;
+    const isInactive     = !u && e && INACTIVE_STATUSES.includes(status);
+
     rows.push({
-      brand:   brandName,
-      amount:  0,
-      comment: "",
+      brand:        brandName,
+      amount:       u ? u.amount : 0,
+      comment:      isBilled ? "Billed" : (u ? (u.comment || "") : ""),
       status,
-      date:    e.date || "",
-      value:   e.value || 0,
-      gam:     owner.gam,
-      am:      owner.am
+      date:         e?.date || "",
+      value:        e?.value || 0,
+      retainerBase: e?.retainerBase || 0,  // monthly retainer value from estimate sheet col C
+      gam:          owner.gam,
+      am:           owner.am,
+      inactive:     isInactive
     });
   });
 
   return rows.sort((a, b) => {
-    const aBilled = a.comment === "Billed" ? 1 : 0;
-    const bBilled = b.comment === "Billed" ? 1 : 0;
-    if (aBilled !== bBilled) return aBilled - bBilled; // unbilled first
-    return a.brand.localeCompare(b.brand);             // then alphabetical
+    // Order: active unbilled → inactive (on pause etc) → billed
+    const aOrder = a.comment === "Billed" ? 2 : (a.inactive ? 1 : 0);
+    const bOrder = b.comment === "Billed" ? 2 : (b.inactive ? 1 : 0);
+    if (aOrder !== bOrder) return aOrder - bOrder;
+    return a.brand.localeCompare(b.brand);
   });
 }
 
@@ -542,6 +535,8 @@ export async function onRequest(context) {
       VAS_ID ? getVASData(VAS_ID, dept, API_KEY) : Promise.resolve({ currentData:{}, lastData:{} })
     ]);
     const rows            = mergeRows(um, em, dept, isApril);
+    // Total retainer base = sum of monthly value from estimate sheet for all active brands
+    const retainerBase    = Object.values(em).filter(e => !INACTIVE_STATUSES.includes(norm(e.status))).reduce((s,e) => s + (e.retainerBase||0), 0);
     const vasCurrentTotal = Object.values(vasData.currentData).reduce((s,v) => s+v.total, 0);
     const vasLastTotal    = Object.values(vasData.lastData).reduce((s,v) => s+(v?.total||0), 0);
 
@@ -555,7 +550,7 @@ export async function onRequest(context) {
       return { brand: v.brand, gam, am, currentVAS: v.total, lastFY };
     }).filter(v => v.currentVAS > 0);
 
-    return new Response(JSON.stringify({ rows, month, hierarchy: HIERARCHY[dept]||{}, vasCurrentTotal, vasLastTotal, vasBrands }), { headers });
+    return new Response(JSON.stringify({ rows, month, retainerBase, hierarchy: HIERARCHY[dept]||{}, vasCurrentTotal, vasLastTotal, vasBrands }), { headers });
 
   } catch(err) {
     return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
