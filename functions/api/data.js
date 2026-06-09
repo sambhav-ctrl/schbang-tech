@@ -8,9 +8,9 @@ const MONTH_ORDER = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct"
 const HIERARCHY = {
   tech: {
     'Akshay': {
-      'Bhargava': ['fevicreate','lnt realty','usv'],
+      'Bhargava': ['fevicreate','lnt realty'],
       'Jayesh':   ['loreal','shriram life'],
-      'Tanisha':  ['cadila','glow','bridgestone','reddy','better bath','dhp'],
+      'Tanisha':  ['cadila','glow','bridgestone','reddy','better bath','dhp','usv'],
       'Tarini':   ['britannia']
     },
     'Carolyn': {
@@ -344,18 +344,47 @@ async function getSummaryData(vasSheetId, apiKey) {
   return { monthlyUnbilled, estInvRatio, totals, _debug: { tab: summaryTab, rowCount: rows.length } };
 }
 
+// Statuses where absence from unbilled sheet does NOT mean billed
+const INACTIVE_STATUSES = ["exit", "on pause", "not started yet"];
+
 function mergeRows(unbilledMap, estMap, dept, isApril) {
+  // Master list comes from estimate sheet — loop through all estimate brands
+  // Plus any brands in unbilled sheet not in estimate sheet
   const allKeys = {};
-  Object.keys(unbilledMap).forEach(k => allKeys[k] = true);
   Object.keys(estMap).forEach(k => allKeys[k] = true);
+  Object.keys(unbilledMap).forEach(k => allKeys[k] = true);
+
   return Object.keys(allKeys).map(key => {
-    const u = unbilledMap[key], e = estMap[key];
+    const u = unbilledMap[key];   // present in unbilled sheet this month?
+    const e = estMap[key];        // present in estimate sheet (master)?
+
     const status = isApril ? (e ? e.status : "yes") : (e ? e.status : "no");
     const owner = findOwner(u ? u.brand : key, dept);
-    return { brand: u ? u.brand : key.replace(/\b\w/g, c => c.toUpperCase()),
-      amount: u ? u.amount : 0, comment: u ? u.comment : "—",
-      status, date: e?.date||"", value: e?.value||0, gam: owner.gam, am: owner.am };
-  }).sort((a,b) => {
+    const brandName = u ? u.brand : (e ? key.replace(/\w/g, c => c.toUpperCase()) : key);
+
+    // Determine billed status:
+    // 1. If brand is in unbilled sheet and col C = "Billed" → billed
+    // 2. If brand is in estimate sheet but ABSENT from unbilled sheet
+    //    AND status is not exit/on pause/not started → billed
+    // 3. Everything else → unbilled
+    let isBilled = false;
+    if (u && u.comment === "Billed") {
+      isBilled = true;
+    } else if (!u && e && !INACTIVE_STATUSES.includes(status)) {
+      isBilled = true;
+    }
+
+    return {
+      brand:   brandName,
+      amount:  u ? u.amount : 0,
+      comment: isBilled ? "Billed" : (u ? u.comment : ""),
+      status,
+      date:    e?.date || "",
+      value:   e?.value || 0,
+      gam:     owner.gam,
+      am:      owner.am
+    };
+  }).sort((a, b) => {
     const aBilled = a.comment === "Billed" ? 1 : 0;
     const bBilled = b.comment === "Billed" ? 1 : 0;
     if (aBilled !== bBilled) return aBilled - bBilled; // unbilled first
