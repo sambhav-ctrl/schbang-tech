@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v2.1 -->
+<!DOCTYPE html><!-- v202606091105 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -568,7 +568,7 @@ function renderBrands(){
     const nameWeight = isBilled||isInactive ? 'style="font-weight:400;opacity:.7"' : '';
     const streakLabel = (!isBilled && !isInactive && r.streak >= 2)
       ? `<span class="streak-badge">${r.streak} months unbilled</span>` : '';
-    return `<div class="bchip${isBilled?' bchip-billed':''}" onclick="selB(${i},this)" data-bidx="${i}" id="bchip-${i}" style="border-color:${cfg.color}18;background:${cfg.color}08;border-left-color:${cfg.color}${isBilled?'40':'99'};position:relative">
+    return `<div class="bchip${isBilled?' bchip-billed':''}" onclick="selB(${i},this)" data-bidx="${i}" id="bchip-${i}" style="background:${cfg.color}0a;border-left-color:${isBilled?cfg.color+'55':cfg.color+'cc'};position:relative">
       <div class="bchip-inner">
         <span class="bchip-name" ${nameWeight}>${r.brand}</span>
         ${streakLabel}
