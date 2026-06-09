@@ -518,11 +518,11 @@ async function loadMonth(month){
     const r=await fetch('/api/data?dept='+DEPT+'&month='+encodeURIComponent(month));
     const d=await r.json();if(d.error)throw new Error(d.error);
     ROWS=d.rows||[];HIER=d.hierarchy||{};VAS_BRANDS=d.vasBrands||[];
-    const total=ROWS.filter(r=>!r.comment?.toLowerCase().includes('billed')).reduce((s,r)=>s+r.amount,0);
+    const total=ROWS.filter(r=>r.comment!=='Billed').reduce((s,r)=>s+r.amount,0);
     animateCount('ret-amount', total);
-    document.getElementById('ret-sub').textContent=ROWS.length+' brands \u00b7 '+cap(month);
+    const unbilledCount=ROWS.filter(r=>r.comment!=='Billed').length; document.getElementById('ret-sub').textContent=unbilledCount+' unbilled \u00b7 '+cap(month);
     // Liquid blob fill: % of retainer already billed
-    const billedAmt=ROWS.filter(r=>r.comment?.toLowerCase().includes('billed')).reduce((s,r)=>s+r.amount,0);
+    const billedAmt=ROWS.filter(r=>r.comment==='Billed').reduce((s,r)=>s+r.amount,0);
     const grand=total+billedAmt;
     const pct=grand>0?Math.round((billedAmt/grand)*100):0;
     const lf=document.getElementById('liquid-fill');const bp=document.getElementById('blob-pct');
@@ -928,7 +928,8 @@ let assigningBrand='';
 function fmt(n){return Number(n).toLocaleString('en-IN');}
 function animateCount(elId, target) {
   const el = document.getElementById(elId);
-  if (!el || !target) return;
+  if (!el) return;
+  if (!target) { el.innerHTML = '&#8377;0'; return; }
   const obj = {val: 0};
   gsap.to(obj, {val: target, duration: 1, ease: 'power2.out',
     onUpdate: () => { el.innerHTML = '&#8377;' + fmt(Math.round(obj.val)); }
