@@ -1,5 +1,5 @@
 // ── Billing Dashboard Service Worker ──────────────────────────
-const CACHE = 'schbang-tech-v1';
+const CACHE = 'schbang-tech-v2';
 
 self.addEventListener('install', e => { self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(clients.claim()); });
