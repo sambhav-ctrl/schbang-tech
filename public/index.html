@@ -529,18 +529,14 @@ async function loadMonth(month){
     const r=await fetch('/api/data?dept='+DEPT+'&month='+encodeURIComponent(month));
     const d=await r.json();if(d.error)throw new Error(d.error);
     ROWS=d.rows||[];HIER=d.hierarchy||{};VAS_BRANDS=d.vasBrands||[];
-    // Retainer base from estimate sheet = total monthly retainer for all active brands
+    // Retainer base = total monthly retainer for all active brands (from estimate sheet)
     const retBase=d.retainerBase||0;
     animateCount('ret-amount', retBase);
-    // Liquid fill: billed so far = retainer base minus still unbilled
     const unbilledAmt=ROWS.filter(r=>r.comment!=='Billed').reduce((s,r)=>s+r.amount,0);
     const billedSoFar=retBase-unbilledAmt;
-    animateCount('ret-amount', total);
-    const unbilledCount=ROWS.filter(r=>r.comment!=='Billed'&&!r.inactive).length; document.getElementById('ret-sub').textContent=unbilledCount+' unbilled \u00b7 '+cap(month);
-    // Liquid blob fill: % of retainer already billed
-    const billedAmt=ROWS.filter(r=>r.comment==='Billed').reduce((s,r)=>s+r.amount,0);
-    const grand=total+billedAmt;
-    const pct=grand>0?Math.round((billedAmt/grand)*100):0;
+    const pct=retBase>0?Math.round((billedSoFar/retBase)*100):0;
+    const unbilledCount=ROWS.filter(r=>r.comment!=='Billed'&&!r.inactive).length;
+    document.getElementById('ret-sub').textContent=unbilledCount+' unbilled \u00b7 '+cap(month);
     const lf=document.getElementById('liquid-fill');const bp=document.getElementById('blob-pct');
     if(lf){requestAnimationFrame(()=>{lf.style.height=pct+'%';});}
     if(bp){bp.textContent=pct+'% billed';}
