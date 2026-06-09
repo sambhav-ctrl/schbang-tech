@@ -181,8 +181,21 @@ async function getUnbilledStreaks(sheetId, allTabs, currentMonth, apiKey) {
 
   if (!allTabs.length) return {};
 
-  // Read the unbilled sheet (pass any tab name — there's only one)
-  const unbilledTab = allTabs[0];
+  // Find the tab that matches currentMonth — that tab has all month columns
+  // (each monthly tab contains the full multi-column history)
+  const normCurTab = norm(currentMonth).replace(/['\s]/g,"");
+  const curTabMonth = MONTH_ORDER.find(m => normCurTab.startsWith(m)) || "";
+  const curTabYear  = normCurTab.replace(curTabMonth,"").replace(/\D/g,"");
+  const curTabYear4 = curTabYear.length === 2 ? "20"+curTabYear : curTabYear;
+
+  const unbilledTab = allTabs.find(t => {
+    const nt = norm(t).replace(/['\s]/g,"");
+    const tm = MONTH_ORDER.find(m => nt.startsWith(m)) || "";
+    const ty = nt.replace(tm,"").replace(/\D/g,"");
+    const ty4 = ty.length === 2 ? "20"+ty : ty;
+    return tm === curTabMonth && ty4 === curTabYear4;
+  }) || allTabs[allTabs.length - 1]; // fallback to last tab
+
   const rows = await fetchSheet(sheetId, unbilledTab, apiKey, 'Z').catch(() => []);
   if (!rows.length) return {};
 
