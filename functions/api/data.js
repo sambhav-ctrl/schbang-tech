@@ -169,39 +169,88 @@ async function getUnbilledRows(sheetId, tabName, apiKey) {
 // Returns { brandKey: consecutiveMonthCount } for all brands unbilled in currentMonth
 // Looks back through previousMonths (sorted oldest→newest, currentMonth last)
 async function getUnbilledStreaks(sheetId, allTabs, currentMonth, apiKey) {
-  // Sort tabs chronologically, get only tabs up to and including current month
-  const sorted = [...allTabs].sort((a,b) => monthSortKey(a) - monthSortKey(b));
-  const currentIdx = sorted.findIndex(t => {
-    const a = norm(t).replace(/['\s]/g,""), b = norm(currentMonth).replace(/['\s]/g,"");
-    const am = MONTH_ORDER.find(m => a.startsWith(m)) || "";
-    const bm = MONTH_ORDER.find(m => b.startsWith(m)) || "";
-    const ay = a.replace(am,"").replace(/\D/g,""); const by = b.replace(bm,"").replace(/\D/g,"");
-    const ay4 = ay.length===2?"20"+ay:ay; const by4 = by.length===2?"20"+by:by;
-    return am === bm && ay4 === by4;
-  });
-  if (currentIdx <= 0) return {}; // no previous months to look back at
+  // The unbilled sheet has ONE tab with multiple month columns.
+  // allTabs contains the tab names from the unbilled sheet (likely just one tab).
+  // We need to read each month's column from that single tab.
+  // We pass the MONTH NAME (not the tab name) to getUnbilledRows so it finds the right column.
 
-  const relevantTabs = sorted.slice(0, currentIdx + 1); // all months up to current
+  // Build a list of all month names to check, sorted chronologically up to currentMonth
+  // We use allTabs from the ESTIMATE sheet (which has one tab per month) as the month list
+  // But since allTabs here is from the UNBILLED sheet (one tab), we need a different approach:
+  // Just read the single unbilled tab and extract all month columns at once.
 
-  // Fetch unbilled rows for all relevant months in parallel
-  const monthMaps = await Promise.all(
-    relevantTabs.map(tab => getUnbilledRows(sheetId, tab, apiKey).catch(() => ({})))
-  );
+  if (!allTabs.length) return {};
 
-  // For each brand in the current month, count consecutive unbilled months going backwards
-  const currentMap = monthMaps[monthMaps.length - 1];
+  // Read the unbilled sheet (pass any tab name — there's only one)
+  const unbilledTab = allTabs[0];
+  const rows = await fetchSheet(sheetId, unbilledTab, apiKey, 'Z').catch(() => []);
+  if (!rows.length) return {};
+
+  // Find header row
+  let headerRowIdx = -1;
+  for (let i = 0; i < rows.length; i++) {
+    if (norm(rows[i][0]) === "retainer") { headerRowIdx = i; break; }
+  }
+  if (headerRowIdx === -1) return {};
+
+  const header = rows[headerRowIdx];
+
+  // Find all month columns in order
+  const monthCols = []; // [{month: "may", year4: "2026", colIdx: 2}, ...]
+  for (let c = 1; c < header.length; c++) {
+    const h = norm(header[c]).replace(/['\s]/g,"");
+    if (!h) continue;
+    const colMonth = MONTH_ORDER.find(m => h.startsWith(m));
+    if (!colMonth) continue;
+    const colYear  = h.replace(colMonth,"").replace(/\D/g,"");
+    const colYear4 = colYear.length === 2 ? "20"+colYear : colYear;
+    monthCols.push({ month: colMonth, year4: colYear4, colIdx: c, sortKey: monthSortKey(colMonth+colYear4) });
+  }
+
+  if (!monthCols.length) return {};
+  monthCols.sort((a,b) => a.sortKey - b.sortKey);
+
+  // Find current month index in monthCols
+  const normCur = norm(currentMonth).replace(/['\s]/g,"");
+  const curMonth = MONTH_ORDER.find(m => normCur.startsWith(m)) || "";
+  const curYear  = normCur.replace(curMonth,"").replace(/\D/g,"");
+  const curYear4 = curYear.length === 2 ? "20"+curYear : curYear;
+  const curIdx   = monthCols.findIndex(mc => mc.month === curMonth && mc.year4 === curYear4);
+
+  if (curIdx <= 0) return {}; // no previous months
+
+  // Build per-month brand maps from brand rows
+  const relevantCols = monthCols.slice(0, curIdx + 1);
+  const brandMaps = relevantCols.map(() => ({}));
+
+  for (let i = headerRowIdx + 1; i < rows.length; i++) {
+    const row = rows[i];
+    const brand = String(row[0]||"").trim();
+    if (!brand || norm(brand) === "total") continue;
+    const key = norm(brand);
+    // Comment col = col after last month col
+    const lastColIdx = monthCols[monthCols.length - 1].colIdx;
+    const comment = String(row[lastColIdx + 1]||"").trim();
+    const isBilled = norm(comment) === "billed";
+
+    relevantCols.forEach((mc, mi) => {
+      const amount = parseAmt(row[mc.colIdx]);
+      brandMaps[mi][key] = { brand, amount, comment: isBilled ? "Billed" : (comment || "") };
+    });
+  }
+
+  // Count consecutive unbilled months going backwards from current
+  const currentMap = brandMaps[brandMaps.length - 1];
   const streaks = {};
   for (const key of Object.keys(currentMap)) {
     const cur = currentMap[key];
-    // Skip billed, inactive (0 amount = inactive/exit), or brands with no real amount
     if (cur.comment === "Billed") continue;
-    if (!cur.amount || cur.amount <= 0) continue; // no retainer this month = not active
+    if (!cur.amount || cur.amount <= 0) continue;
     let count = 0;
-    for (let i = monthMaps.length - 1; i >= 0; i--) {
-      const m = monthMaps[i];
-      // Only count month if brand has a real unbilled amount (> 0) and not billed
+    for (let i = brandMaps.length - 1; i >= 0; i--) {
+      const m = brandMaps[i];
       if (m[key] && m[key].amount > 0 && m[key].comment !== "Billed") count++;
-      else break; // streak broken
+      else break;
     }
     if (count >= 2) streaks[key] = count;
   }
