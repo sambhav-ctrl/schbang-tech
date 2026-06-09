@@ -7,14 +7,14 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="theme-color" content="#0a0a0a"/>
 <link rel="manifest" href="/manifest.json"/>
-<title>Tech Billing</title>
+<title>Martech Billing</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
 <style>
 html{font-size:16px;-webkit-text-size-adjust:100%;scrollbar-width:none}html::-webkit-scrollbar{display:none}
-:root{--bg:#0a0a0a;--sur:#141414;--card:#1c1c1c;--bor:#2a2a2a;--acc:#c8f135;--tx:#f5f5f5;--mu:#777;--so:#aaa;--nav:56px}
+:root{--bg:#0a0a0a;--sur:#141414;--card:#1c1c1c;--bor:#2a2a2a;--acc:#ff9800;--tx:#f5f5f5;--mu:#777;--so:#aaa;--nav:56px}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-height:100vh;padding-bottom:var(--nav);-webkit-overflow-scrolling:touch}
 .bnav{position:fixed;bottom:0;left:0;right:0;height:var(--nav);background:rgba(10,10,10,0.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.07);display:flex;z-index:100;box-shadow:0 -4px 24px rgba(0,0,0,0.4)}
@@ -28,7 +28,7 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
 .bell-btn{position:absolute;top:52px;right:22px;width:42px;height:42px;border-radius:50%;border:1px solid var(--bor);background:var(--card);font-size:1.1rem;cursor:pointer;transition:.2s;z-index:5}
 .bell-btn.on{background:var(--acc);border-color:var(--acc)}
 .bell-btn:active{transform:scale(.9)}
-.reminder-banner{margin:0 18px 14px;padding:14px 16px;background:linear-gradient(135deg,var(--card),rgba(200,241,53,.06));border:1px solid var(--acc);border-radius:16px;display:flex;align-items:center;gap:12px;cursor:pointer;animation:rbIn .5s ease}
+.reminder-banner{margin:0 18px 14px;padding:14px 16px;background:linear-gradient(135deg,var(--card),rgba(255,152,0,.08));border:1px solid var(--acc);border-radius:16px;display:flex;align-items:center;gap:12px;cursor:pointer;animation:rbIn .5s ease}
 @keyframes rbIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 .rb-icon{font-size:1.4rem}
 .rb-body{flex:1;min-width:0}
@@ -63,7 +63,7 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
 .brm-key{font-size:.82rem;color:var(--mu)}
 .brm-val{font-size:.86rem;color:var(--so);text-align:right}
 .brm-val.mono{font-family:"DM Mono",monospace;color:var(--tx)}
-.br-vas-section{padding:14px 18px;background:#c8f13508;border-top:1px solid var(--bor)}
+.br-vas-section{padding:14px 18px;background:#ff980008;border-top:1px solid var(--bor)}
 .br-vas-title{font-size:.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--acc);margin-bottom:8px}
 .br-last-fy{padding:14px 18px;background:#ff6b3508;border-top:1px solid var(--bor)}
 .br-last-title{font-size:.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#ff6b35;margin-bottom:8px}
@@ -80,9 +80,8 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
 .tl-item{display:flex;flex-direction:column;align-items:center;position:relative;cursor:pointer}
 .tl-line{display:none}
 .tl-dot{display:none}
-/* Month cloud pills */
 .tl-pill{padding:7px 14px;border-radius:999px;background:var(--sur);border:1.5px solid var(--bor);font-size:.72rem;font-weight:700;letter-spacing:.5px;color:var(--mu);text-transform:uppercase;white-space:nowrap;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:2px}
-.tl-item.active .tl-pill{background:var(--acc);border-color:var(--acc);color:#0a0a0a;box-shadow:0 4px 16px rgba(200,241,53,0.3)}
+.tl-item.active .tl-pill{background:var(--acc);border-color:var(--acc);color:#0a0a0a;box-shadow:0 4px 16px rgba(255,152,0,0.3)}
 .tl-label{font-size:.72rem;font-weight:700;letter-spacing:.5px;white-space:nowrap}
 .tl-amt{font-size:.58rem;font-family:"DM Mono",monospace;opacity:.7;margin-top:1px}
 .tl-item.active .tl-amt{opacity:.6}
@@ -108,7 +107,13 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
 .spill-lbl{font-size:.65rem;color:var(--mu);font-weight:500}
 .slabel{font-size:.66rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--mu);padding:4px 20px 10px;flex-shrink:0}
 .bchips{padding:0 16px 14px;display:flex;flex-direction:column;gap:8px;contain:layout style}
-.bchip{padding:13px 16px;border-radius:14px;border:1.5px solid transparent;cursor:pointer;user-select:none;transition:all .15s;display:flex;align-items:center;justify-content:space-between;width:100%}
+.bchip{padding:10px 14px 10px 16px;border-radius:12px;border:1.5px solid transparent;border-left:3px solid transparent;cursor:pointer;user-select:none;transition:all .15s;display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%}
+.bchip-inner{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+.bchip-billed{opacity:0.4;}
+.bchip-billed .bchip-name{text-decoration:line-through;}
+.billed-toggle{padding:8px 20px;font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mu);cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none}
+.billed-toggle::before,.billed-toggle::after{content:'';flex:1;height:1px;background:var(--bor)}
+.billed-section{overflow:hidden;transition:max-height .3s ease}
 .bchip-billed{opacity:0.45;}
 .streak-badge{font-size:.62rem;font-weight:600;color:#ff6b35;white-space:nowrap;display:flex;align-items:center;gap:4px}.streak-badge::before{content:"";width:5px;height:5px;border-radius:50%;background:#ff6b35;flex-shrink:0}
 .billed-divider{padding:10px 4px 6px;display:flex;align-items:center;gap:8px;flex-shrink:0}
@@ -151,7 +156,7 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
 .assign-title{font-size:.75rem;font-weight:700;letter-spacing:2px;color:#aaa;text-transform:uppercase;margin-bottom:16px}
 .assign-brand{font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:20px}
 .assign-select{width:100%;background:#111;color:#fff;border:1px solid #333;border-radius:8px;padding:10px 12px;font-size:.9rem;margin-bottom:12px}
-.assign-save{width:100%;padding:12px;border-radius:8px;background:#c8f135;color:#000;font-weight:700;font-size:.9rem;cursor:pointer;border:none}
+.assign-save{width:100%;padding:12px;border-radius:8px;background:#ff9800;color:#000;font-weight:700;font-size:.9rem;cursor:pointer;border:none}
 .assign-cancel{width:100%;padding:10px;border-radius:8px;background:transparent;color:#666;font-size:.85rem;cursor:pointer;border:none;margin-top:6px}
 
 .am-summary-card{background:rgba(124,77,255,0.08);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(124,77,255,0.2);border-radius:14px;padding:14px 16px;margin:0 16px 12px;box-shadow:0 8px 32px rgba(124,77,255,0.1)}
@@ -163,10 +168,10 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
 
 
 /* Liquid blob retainer card */
-.sum-card.main{background:#c8f135;overflow:hidden;position:relative;}
+.sum-card.main{background:#ff9800;overflow:hidden;position:relative;}
 .liquid-wrap{position:absolute;inset:0;z-index:0;overflow:hidden;border-radius:18px;}
-.liquid-bg{position:absolute;inset:0;background:#c8f135;}
-.liquid-fill{position:absolute;bottom:0;left:0;right:0;height:0%;background:#8fb800;transition:height 1s cubic-bezier(.4,0,.2,1);}
+.liquid-bg{position:absolute;inset:0;background:#ffb74d;}
+.liquid-fill{position:absolute;bottom:0;left:0;right:0;height:0%;background:#cc7a00;transition:height 1s cubic-bezier(.4,0,.2,1);}
 .liquid-wave-svg{position:absolute;left:-5%;width:110%;bottom:calc(100% - 11px);}
 .liquid-wave-svg .wave1{opacity:.85;transform-origin:center bottom;animation:ripple1 4s ease-in-out infinite;}
 .liquid-wave-svg .wave2{opacity:.5;transform-origin:center bottom;animation:ripple2 5.5s ease-in-out infinite;}
@@ -227,7 +232,7 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
 <div class="screen active" id="screen-search">
   <div class="search-hero" >
     <div class="search-dept">Schbang</div>
-    <div class="search-title">TECH<br/><span>UNBILLED</span></div>
+    <div class="search-title">MARTECH<br/><span>UNBILLED</span></div>
     <button class="bell-btn" id="bell-btn" onclick="toggleReminders()" title="Weekly reminders">🔔</button>
   </div>
   <div class="reminder-banner" id="reminder-banner" onclick="switchScreen('browse')" style="display:none">
@@ -248,7 +253,7 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
 
 <div class="screen" id="screen-browse">
   <div class="browse-header">
-    <div><div class="htitle">TECH<br/><span>UNBILLED</span></div><div class="hsub" id="hsub">—</div></div>
+    <div><div class="htitle">MARTECH<br/><span>UNBILLED</span></div><div class="hsub" id="hsub">—</div></div>
     <div class="view-tabs">
       <button class="vtab active" id="vtab-brands" onclick="setSubView('brands')">🏷 Brands</button>
       <button class="vtab" id="vtab-people" onclick="setSubView('people')">👥 People</button>
@@ -261,8 +266,8 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
         <div class="liquid-bg"></div>
         <div class="liquid-fill" id="liquid-fill">
           <svg class="liquid-wave-svg" viewBox="0 0 400 20" preserveAspectRatio="none" style="height:22px">
-            <path class="wave1" d="M0,10 C50,0 100,20 150,10 C200,0 250,20 300,10 C350,0 400,20 400,10 L400,20 L0,20 Z" fill="#8fb800"/>
-            <path class="wave2" d="M0,14 C60,4 120,20 180,12 C240,4 300,18 360,10 C380,6 400,12 400,14 L400,20 L0,20 Z" fill="#a0cc00" opacity="0.6"/>
+            <path class="wave1" d="M0,10 C50,0 100,20 150,10 C200,0 250,20 300,10 C350,0 400,20 400,10 L400,20 L0,20 Z" fill="#cc7a00"/>
+            <path class="wave2" d="M0,14 C60,4 120,20 180,12 C240,4 300,18 360,10 C380,6 400,12 400,14 L400,20 L0,20 Z" fill="#e68a00" opacity="0.6"/>
           </svg>
         </div>
       </div>
@@ -327,7 +332,7 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
 </div>
 
 <script>
-const DEPT='tech';
+const DEPT='martech';
 const HIERARCHY={tech:{'Akshay':{'Bhargava':['fevicreate','lnt realty'],'Jayesh':['loreal','shriram life'],'Tanisha':['cadilla','glow','bridgestone','reddy','better bath','dhp','usv'],'Tarini':['britannia']},'Carolyn':{'Aqib':['hccb','jindal stainless'],'Ritesh':['birla opus','bodycraft'],'Khushi':['amazon','ring','vantara']},'Melissa':{'Priyam':['brookfield','figaro','himatsingka','himmatsingka','nanhi kali']}},martech:{'Akshay':{'Bhargava':['fevicreate','audi'],'Tanisha':['dominos','bridgestone'],'Tarini':['britannia','jiostar']},'Carolyn':{'Khushi':['mccain'],'Ritesh':['bodycraft','aditya birla']},'Melissa':{'Priyam':['milton','treo','procook','brookfield'],'Vibhuti':['jockey','mahindra rise','kotak','nivea','castrol'],'Minal':['mom store','hdfc life','motorola']}}};
 const SCFG={'yes':{label:'Est. Raised',color:'#4caf50'},'no':{label:'Not Raised',color:'#ff6b35'},'on pause':{label:'On Pause',color:'#7c4dff'},'exit':{label:'Exit',color:'#f44336'},'not started yet':{label:'Not Started',color:'#9e9e9e'}};
 let MONTHS=[],ROWS=[],HIER={},VAS_BRANDS=[],currentMonth='',currentSub='brands',selBrand=-1,currentGAM=null,currentAM=null;
@@ -688,7 +693,7 @@ function selAMf(am){
   }).join('')+'</div>':'';
 
   // VAS brand chips
-  const vasHTML=vasR.length?`<div class="slabel">VAS BRANDS (${vasR.length})</div><div class="bchips">`+vasR.map(v=>`<div class="bchip" style="border-color:#c8f13533;background:#c8f1350e"><span class="bchip-name">${v.brand}</span><span class="est-badge" style="background:#c8f13522;color:#c8f135">&#8377;${fmt(v.currentVAS)}</span></div>`).join('')+'</div>':'';
+  const vasHTML=vasR.length?`<div class="slabel">VAS BRANDS (${vasR.length})</div><div class="bchips">`+vasR.map(v=>`<div class="bchip" style="border-color:#ff980033;background:#ff98000e"><span class="bchip-name">${v.brand}</span><span class="est-badge" style="background:#ff980022;color:#ff9800">&#8377;${fmt(v.currentVAS)}</span></div>`).join('')+'</div>':'';
 
   document.getElementById('pbl').textContent=am+"'s Summary";
   document.getElementById('people-bchips').innerHTML=`
@@ -783,7 +788,7 @@ async function saveAssignment(){
   if(q&&q.length>=2)doSearch(q);
 }
 
-const ACC='#c8f135', ACC2='#7c4dff';
+const ACC='#ff9800', ACC2='#7c4dff';
 function fmtK(v){return '₹'+(Math.abs(v)>=10000000?(v/10000000).toFixed(2)+'Cr':Math.abs(v)>=100000?(v/100000).toFixed(1)+'L':Math.abs(v)>=1000?(v/1000).toFixed(0)+'k':v);}
 function shortMonth(m){return String(m).replace(/ 20\d\d/,'').replace(/20\d\d/,'').trim().slice(0,3);}
 
