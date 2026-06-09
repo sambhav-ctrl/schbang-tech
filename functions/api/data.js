@@ -8,9 +8,9 @@ const MONTH_ORDER = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct"
 const HIERARCHY = {
   tech: {
     'Akshay': {
-      'Bhargava': ['fevicreate','lnt realty'],
+      'Bhargava': ['fevicreate','lnt realty','usv'],
       'Jayesh':   ['loreal','shriram life'],
-      'Tanisha':  ['cadila','glow','bridgestone','reddy','better bath','dhp','usv'],
+      'Tanisha':  ['cadila','glow','bridgestone','reddy','better bath','dhp'],
       'Tarini':   ['britannia']
     },
     'Carolyn': {
