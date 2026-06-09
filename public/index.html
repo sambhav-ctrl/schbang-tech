@@ -595,7 +595,7 @@ function renderBrands(){
     const el=document.getElementById('bchip-'+i);
     if(el) addLongPress(el,i,false,null);
   });
-  gsap.from('#bchips .bchip',{opacity:0,x:-20,stagger:.04,duration:.3,ease:'power2.out',clearProps:'all'});
+  gsap.from('#bchips .bchip',{opacity:0,x:-20,stagger:.04,duration:.3,ease:'power2.out',clearProps:'transform,opacity'});
 }
 
 function selB(idx,el){
@@ -702,7 +702,7 @@ function selAMf(am){
   const pbw=document.getElementById('people-brands-wrap');pbw.style.display='block';pbw.style.opacity='1';
   gsap.from('.am-summary-card',{opacity:0,y:-20,scale:.95,duration:.5,ease:'back.out(1.5)',clearProps:'all'});
 
-  gsap.from('#people-bchips .bchip',{opacity:0,x:-20,stagger:.04,duration:.3,ease:'power2.out',delay:.1,clearProps:'all'});
+  gsap.from('#people-bchips .bchip',{opacity:0,x:-20,stagger:.04,duration:.3,ease:'power2.out',delay:.1,clearProps:'transform,opacity'});
 }
 
 function setupSearch(){
