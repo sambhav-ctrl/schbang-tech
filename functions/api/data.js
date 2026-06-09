@@ -192,11 +192,15 @@ async function getUnbilledStreaks(sheetId, allTabs, currentMonth, apiKey) {
   const currentMap = monthMaps[monthMaps.length - 1];
   const streaks = {};
   for (const key of Object.keys(currentMap)) {
-    if (currentMap[key].comment === "Billed") continue; // skip billed brands
+    const cur = currentMap[key];
+    // Skip billed, inactive (0 amount = inactive/exit), or brands with no real amount
+    if (cur.comment === "Billed") continue;
+    if (!cur.amount || cur.amount <= 0) continue; // no retainer this month = not active
     let count = 0;
     for (let i = monthMaps.length - 1; i >= 0; i--) {
       const m = monthMaps[i];
-      if (m[key] && m[key].comment !== "Billed") count++;
+      // Only count month if brand has a real unbilled amount (> 0) and not billed
+      if (m[key] && m[key].amount > 0 && m[key].comment !== "Billed") count++;
       else break; // streak broken
     }
     if (count >= 2) streaks[key] = count;
