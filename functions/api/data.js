@@ -8,13 +8,13 @@ const MONTH_ORDER = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct"
 const HIERARCHY = {
   tech: {
     'Akshay': {
-      'Bhargava': ['fevicreate','lnt realty','usv'],
+      'Bhargava': ['fevicreate','lnt realty'],
       'Jayesh':   ['loreal','shriram life'],
-      'Tanisha':  ['cadila','glow','bridgestone','reddy','better bath','dhp'],
+      'Tanisha':  ['cadila','glow','bridgestone','reddy','better bath','dhp','usv'],
       'Tarini':   ['britannia']
     },
     'Carolyn': {
-      'Aqib':   ['hccb','jindal staineless'],
+      'Aqib':   ['hccb','jindal stainless'],
       'Ritesh': ['birla opus','bodycraft'],
       'Khushi': ['amazon','ring','vantara']
     },
@@ -41,7 +41,7 @@ const HIERARCHY = {
 };
 
 const APR_EXCEPTIONS = {
-  tech:    ["britannia","jindal staineless","vantara"],
+  tech:    ["britannia","jindal stainless"],
   martech: ["britannia"]
 };
 
@@ -49,6 +49,18 @@ function parseAmt(val) {
   return parseFloat(String(val||"").replace(/,/g,"")) || 0;
 }
 function norm(s) { return String(s||"").toLowerCase().trim(); }
+
+// Convert column index (0-based) to letter(s): 0=A, 1=B, 25=Z, 26=AA etc.
+function colLetter(idx) {
+  let s = "";
+  idx++;
+  while (idx > 0) {
+    idx--;
+    s = String.fromCharCode(65 + (idx % 26)) + s;
+    idx = Math.floor(idx / 26);
+  }
+  return s;
+}
 
 function monthSortKey(name) {
   const s = norm(name).replace(/['\s]/g,"");
@@ -87,17 +99,61 @@ async function fetchSheetMeta(sheetId, apiKey) {
   return (data.sheets||[]).map(s => s.properties.title);
 }
 
+// ── Rewritten: handles multi-column unbilled sheet ──────────
+// Structure: Col A = brands, Col B onwards = one col per month, last col = comment
+// Row 2 (index 1) = header: "Retainer | Apr'26 | May'26 | Jun'26 | Comment"
+// We find the column matching tabName, and comment is always the column after the LAST month col
 async function getUnbilledRows(sheetId, tabName, apiKey) {
-  const rows = await fetchSheet(sheetId, tabName, apiKey, 'C');
+  // Fetch wide enough to cover many months (A to Z covers 26 cols = 24 months + brand + comment)
+  const rows = await fetchSheet(sheetId, tabName, apiKey, 'Z');
+  if (!rows.length) return {};
+
+  // Find header row (contains "retainer" in col A)
+  let headerRowIdx = -1;
+  for (let i = 0; i < rows.length; i++) {
+    if (norm(rows[i][0]) === "retainer") { headerRowIdx = i; break; }
+  }
+  if (headerRowIdx === -1) return {};
+
+  const header = rows[headerRowIdx];
+
+  // Find which column matches the requested month tab name
+  // Match loosely: strip spaces/apostrophes and compare
+  const normTab = norm(tabName).replace(/['\s]/g,"");
+  let monthColIdx = -1;
+  let lastMonthColIdx = -1;
+
+  for (let c = 1; c < header.length; c++) {
+    const h = norm(header[c]).replace(/['\s]/g,"");
+    if (!h) continue;
+    // Check if this column is a month column (starts with a month name)
+    const isMonth = MONTH_ORDER.some(m => h.startsWith(m));
+    if (isMonth) {
+      lastMonthColIdx = c;
+      if (h === normTab || h.startsWith(normTab) || normTab.startsWith(h)) {
+        monthColIdx = c;
+      }
+    }
+  }
+
+  if (monthColIdx === -1) return {};
+
+  // Comment column is always immediately after the last month column
+  const commentColIdx = lastMonthColIdx + 1;
+
   const map = {};
-  let started = false;
-  for (const row of rows) {
-    if (!started) { if (norm(row[0]) === "retainer") { started = true; continue; } continue; }
+  for (let i = headerRowIdx + 1; i < rows.length; i++) {
+    const row = rows[i];
     const brand = String(row[0]||"").trim();
-    const amount = parseAmt(row[1]);
-    const comment = String(row[2]||"").trim();
-    if (!brand || norm(brand) === "total" || !amount) continue;
-    map[norm(brand)] = { brand, amount, comment: comment || "No comment — pending" };
+    if (!brand || norm(brand) === "total") continue;
+    const amount  = parseAmt(row[monthColIdx]);
+    const comment = String(row[commentColIdx]||"").trim();
+    const isBilled = norm(comment) === "billed";
+    map[norm(brand)] = {
+      brand,
+      amount,
+      comment: isBilled ? "Billed" : (comment || "")
+    };
   }
   return map;
 }
@@ -299,7 +355,12 @@ function mergeRows(unbilledMap, estMap, dept, isApril) {
     return { brand: u ? u.brand : key.replace(/\b\w/g, c => c.toUpperCase()),
       amount: u ? u.amount : 0, comment: u ? u.comment : "—",
       status, date: e?.date||"", value: e?.value||0, gam: owner.gam, am: owner.am };
-  }).sort((a,b) => a.brand.localeCompare(b.brand));
+  }).sort((a,b) => {
+    const aBilled = a.comment === "Billed" ? 1 : 0;
+    const bBilled = b.comment === "Billed" ? 1 : 0;
+    if (aBilled !== bBilled) return aBilled - bBilled; // unbilled first
+    return a.brand.localeCompare(b.brand);             // then alphabetical
+  });
 }
 
 function vasLookup(vasData, brandName) {
