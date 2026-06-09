@@ -156,7 +156,7 @@ async function getUnbilledRows(sheetId, tabName, apiKey) {
     if (!brand || norm(brand) === "total") continue;
     const amount  = parseAmt(row[monthColIdx]);
     const comment = String(row[commentColIdx]||"").trim();
-    const isBilled = norm(comment) === "billed";
+    const isBilled = norm(comment).startsWith("billed");
     map[norm(brand)] = {
       brand,
       amount,
@@ -244,7 +244,7 @@ async function getUnbilledStreaks(sheetId, allTabs, currentMonth, apiKey) {
     // Comment col = col after last month col
     const lastColIdx = monthCols[monthCols.length - 1].colIdx;
     const comment = String(row[lastColIdx + 1]||"").trim();
-    const isBilled = norm(comment) === "billed";
+    const isBilled = norm(comment).startsWith("billed");
 
     relevantCols.forEach((mc, mi) => {
       const amount = parseAmt(row[mc.colIdx]);
