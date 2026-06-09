@@ -110,6 +110,10 @@ body{background:var(--bg);color:var(--tx);font-family:"DM Sans",sans-serif;min-h
 .slabel{font-size:.66rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--mu);padding:4px 20px 10px;flex-shrink:0}
 .bchips{padding:0 16px 14px;display:flex;flex-direction:column;gap:8px;contain:layout style}
 .bchip{padding:13px 16px;border-radius:14px;border:1.5px solid transparent;cursor:pointer;user-select:none;transition:all .15s;display:flex;align-items:center;justify-content:space-between;width:100%}
+.bchip-billed{opacity:0.45;}
+.billed-divider{padding:10px 4px 6px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.billed-divider span{font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mu)}
+.billed-divider::before,.billed-divider::after{content:'';flex:1;height:1px;background:var(--bor)}
 .bchip.selected{box-shadow:0 0 0 2px rgba(255,255,255,.12)}
 .bchip-name{font-size:.93rem;font-weight:600;color:var(--tx)}
 .bchip-name.billed{text-decoration:line-through;opacity:0.45}
@@ -540,11 +544,22 @@ function renderSummary(){
 }
 
 function renderBrands(){
-  document.getElementById('bchips').innerHTML=ROWS.map((r,i)=>{
-    const cfg=SCFG[r.status]||SCFG['no'];
-    const billed=r.comment?.toLowerCase().includes('billed');
-    return `<div class="bchip" onclick="selB(${i},this)" data-bidx="${i}" id="bchip-${i}" style="border-color:${cfg.color}33;background:${cfg.color}0e;position:relative"><span class="bchip-name${billed?' billed':''}">${r.brand}</span><span class="est-badge" style="background:${cfg.color}22;color:${cfg.color}">${cfg.label}</span><span class="lp-hint">hold to preview</span></div>`;
-  }).join('');
+  // Split into unbilled and billed
+  const unbilled = ROWS.filter(r => r.comment !== 'Billed');
+  const billed   = ROWS.filter(r => r.comment === 'Billed');
+
+  const renderChip = (r, i) => {
+    const cfg = SCFG[r.status]||SCFG['no'];
+    const isBilled = r.comment === 'Billed';
+    return `<div class="bchip${isBilled?' bchip-billed':''}" onclick="selB(${i},this)" data-bidx="${i}" id="bchip-${i}" style="border-color:${cfg.color}33;background:${cfg.color}0e;position:relative"><span class="bchip-name${isBilled?' billed':''}">${r.brand}</span><span class="est-badge" style="background:${cfg.color}22;color:${cfg.color}">${isBilled?'Billed':cfg.label}</span><span class="lp-hint">hold to preview</span></div>`;
+  };
+
+  let html = unbilled.map((r) => renderChip(r, ROWS.indexOf(r))).join('');
+  if (billed.length) {
+    html += `<div class="billed-divider"><span>✓ ${billed.length} Billed</span></div>`;
+    html += billed.map((r) => renderChip(r, ROWS.indexOf(r))).join('');
+  }
+  document.getElementById('bchips').innerHTML = html;
   // Wire long press
   ROWS.forEach((_,i)=>{
     const el=document.getElementById('bchip-'+i);
