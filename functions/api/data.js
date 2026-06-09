@@ -166,6 +166,44 @@ async function getUnbilledRows(sheetId, tabName, apiKey) {
   return map;
 }
 
+// Returns { brandKey: consecutiveMonthCount } for all brands unbilled in currentMonth
+// Looks back through previousMonths (sorted oldest→newest, currentMonth last)
+async function getUnbilledStreaks(sheetId, allTabs, currentMonth, apiKey) {
+  // Sort tabs chronologically, get only tabs up to and including current month
+  const sorted = [...allTabs].sort((a,b) => monthSortKey(a) - monthSortKey(b));
+  const currentIdx = sorted.findIndex(t => {
+    const a = norm(t).replace(/['\s]/g,""), b = norm(currentMonth).replace(/['\s]/g,"");
+    const am = MONTH_ORDER.find(m => a.startsWith(m)) || "";
+    const bm = MONTH_ORDER.find(m => b.startsWith(m)) || "";
+    const ay = a.replace(am,"").replace(/\D/g,""); const by = b.replace(bm,"").replace(/\D/g,"");
+    const ay4 = ay.length===2?"20"+ay:ay; const by4 = by.length===2?"20"+by:by;
+    return am === bm && ay4 === by4;
+  });
+  if (currentIdx <= 0) return {}; // no previous months to look back at
+
+  const relevantTabs = sorted.slice(0, currentIdx + 1); // all months up to current
+
+  // Fetch unbilled rows for all relevant months in parallel
+  const monthMaps = await Promise.all(
+    relevantTabs.map(tab => getUnbilledRows(sheetId, tab, apiKey).catch(() => ({})))
+  );
+
+  // For each brand in the current month, count consecutive unbilled months going backwards
+  const currentMap = monthMaps[monthMaps.length - 1];
+  const streaks = {};
+  for (const key of Object.keys(currentMap)) {
+    if (currentMap[key].comment === "Billed") continue; // skip billed brands
+    let count = 0;
+    for (let i = monthMaps.length - 1; i >= 0; i--) {
+      const m = monthMaps[i];
+      if (m[key] && m[key].comment !== "Billed") count++;
+      else break; // streak broken
+    }
+    if (count >= 2) streaks[key] = count;
+  }
+  return streaks;
+}
+
 async function getEstimateMap(sheetId, tabName, dept, apiKey, isApril) {
   const map = {};
   if (isApril) {
@@ -549,12 +587,16 @@ export async function onRequest(context) {
     // ── Month ─────────────────────────────────────────────────
     const month   = p.month;
     const isApril = norm(month).replace(/[\s']/g,"").includes("apr");
-    const [um, em, vasData] = await Promise.all([
+    const [um, em, vasData, allUnbilledTabs] = await Promise.all([
       getUnbilledRows(UNBILLED_ID, month, API_KEY).catch(()=>({})),
       getEstimateMap(ESTIMATE_ID, month, dept, API_KEY, isApril).catch(()=>({})),
-      VAS_ID ? getVASData(VAS_ID, dept, API_KEY) : Promise.resolve({ currentData:{}, lastData:{} })
+      VAS_ID ? getVASData(VAS_ID, dept, API_KEY) : Promise.resolve({ currentData:{}, lastData:{} }),
+      fetchSheetMeta(UNBILLED_ID, API_KEY).catch(()=>[])
     ]);
     const rows            = mergeRows(um, em, dept, isApril);
+    // Attach consecutive unbilled streak to each row
+    const streaks = await getUnbilledStreaks(UNBILLED_ID, allUnbilledTabs, month, API_KEY).catch(()=>({}));
+    rows.forEach(r => { r.streak = streaks[norm(r.brand)] || 0; });
     // Total retainer base = sum of monthly value from estimate sheet for all active brands
     const retainerBase    = Object.values(em).filter(e => !INACTIVE_STATUSES.includes(norm(e.status))).reduce((s,e) => s + (e.retainerBase||0), 0);
     const vasCurrentTotal = Object.values(vasData.currentData).reduce((s,v) => s+v.total, 0);
