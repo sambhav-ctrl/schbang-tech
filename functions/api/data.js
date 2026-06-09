@@ -344,47 +344,59 @@ async function getSummaryData(vasSheetId, apiKey) {
   return { monthlyUnbilled, estInvRatio, totals, _debug: { tab: summaryTab, rowCount: rows.length } };
 }
 
-// Inactive statuses — brand has no active retainer, don't count as billed
+// Statuses shown even without a retainer amount this month
 const INACTIVE_STATUSES = ["exit", "on pause", "not started yet"];
 
 function mergeRows(unbilledMap, estMap, dept, isApril) {
   const rows = [];
-  const allKeys = {};
-  Object.keys(estMap).forEach(k => allKeys[k] = true);
-  Object.keys(unbilledMap).forEach(k => allKeys[k] = true);
 
-  Object.keys(allKeys).forEach(key => {
-    const u = unbilledMap[key];  // in unbilled sheet this month?
-    const e = estMap[key];       // in estimate sheet (master)?
+  // 1. All brands in the unbilled sheet this month — these are the live unbilled brands
+  Object.keys(unbilledMap).forEach(key => {
+    const u = unbilledMap[key];
+    const e = estMap[key];
     const status = isApril ? (e ? e.status : "yes") : (e ? e.status : "no");
-    const owner = findOwner(u ? u.brand : key, dept);
-    const brandName = u ? u.brand : key.replace(/\w/g, c => c.toUpperCase());
-
-    // Billed logic:
-    // - Present in unbilled sheet with col C = "Billed" → billed (manually marked)
-    // - Absent from unbilled sheet + active status → already invoiced = billed
-    // - Absent from unbilled sheet + inactive status → not active, show with status
-    const manuallyBilled = u && u.comment === "Billed";
-    const autosBilled    = !u && e && !INACTIVE_STATUSES.includes(status);
-    const isBilled       = manuallyBilled || autosBilled;
-    const isInactive     = !u && e && INACTIVE_STATUSES.includes(status);
-
+    const owner = findOwner(u.brand, dept);
+    const isBilled = u.comment === "Billed"; // only billed if explicitly marked in col C
     rows.push({
-      brand:        brandName,
-      amount:       u ? u.amount : 0,
-      comment:      isBilled ? "Billed" : (u ? (u.comment || "") : ""),
+      brand:        u.brand,
+      amount:       u.amount,
+      comment:      isBilled ? "Billed" : (u.comment || ""),
       status,
       date:         e?.date || "",
       value:        e?.value || 0,
-      retainerBase: e?.retainerBase || 0,  // monthly retainer value from estimate sheet col C
+      retainerBase: e?.retainerBase || 0,
       gam:          owner.gam,
       am:           owner.am,
-      inactive:     isInactive
+      inactive:     false
+    });
+  });
+
+  // 2. Brands in estimate sheet but NOT in unbilled sheet
+  //    Only show if status is on pause / not started yet / exit
+  //    All other absent brands simply have no retainer this month — don't show
+  Object.keys(estMap).forEach(key => {
+    if (unbilledMap[key]) return; // already handled above
+    const e = estMap[key];
+    const status = e.status;
+    if (!INACTIVE_STATUSES.includes(status)) return;
+    const owner = findOwner(key, dept);
+    const brandName = key.replace(/\w/g, c => c.toUpperCase());
+    rows.push({
+      brand:        brandName,
+      amount:       0,
+      comment:      "",
+      status,
+      date:         e.date || "",
+      value:        e.value || 0,
+      retainerBase: e.retainerBase || 0,
+      gam:          owner.gam,
+      am:           owner.am,
+      inactive:     true
     });
   });
 
   return rows.sort((a, b) => {
-    // Order: active unbilled → inactive (on pause etc) → billed
+    // Order: active unbilled → inactive → billed
     const aOrder = a.comment === "Billed" ? 2 : (a.inactive ? 1 : 0);
     const bOrder = b.comment === "Billed" ? 2 : (b.inactive ? 1 : 0);
     if (aOrder !== bOrder) return aOrder - bOrder;
