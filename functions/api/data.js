@@ -118,21 +118,29 @@ async function getUnbilledRows(sheetId, tabName, apiKey) {
   const header = rows[headerRowIdx];
 
   // Find which column matches the requested month tab name
-  // Match loosely: strip spaces/apostrophes and compare
+  // Match by month+year: extract month prefix and year digits, compare both
   const normTab = norm(tabName).replace(/['\s]/g,"");
+  // Extract month name from tab (e.g. "may26" -> "may", "26")
+  const tabMonth = MONTH_ORDER.find(m => normTab.startsWith(m)) || "";
+  const tabYear  = normTab.replace(tabMonth,"").replace(/\D/g,""); // digits only e.g. "26" or "2026"
+  const tabYear4 = tabYear.length === 2 ? "20"+tabYear : tabYear;  // normalise to 4-digit year
+
   let monthColIdx = -1;
   let lastMonthColIdx = -1;
 
   for (let c = 1; c < header.length; c++) {
     const h = norm(header[c]).replace(/['\s]/g,"");
     if (!h) continue;
-    // Check if this column is a month column (starts with a month name)
-    const isMonth = MONTH_ORDER.some(m => h.startsWith(m));
-    if (isMonth) {
-      lastMonthColIdx = c;
-      if (h === normTab || h.startsWith(normTab) || normTab.startsWith(h)) {
-        monthColIdx = c;
-      }
+    // Check if this column is a month column (starts with a known month name)
+    const colMonth = MONTH_ORDER.find(m => h.startsWith(m));
+    if (!colMonth) continue;
+    lastMonthColIdx = c;
+    // Extract year from column header
+    const colYear  = h.replace(colMonth,"").replace(/\D/g,"");
+    const colYear4 = colYear.length === 2 ? "20"+colYear : colYear;
+    // Match if same month AND same year (ignoring 2-digit vs 4-digit difference)
+    if (colMonth === tabMonth && colYear4 === tabYear4) {
+      monthColIdx = c;
     }
   }
 
